@@ -1,6 +1,6 @@
-use log::LevelFilter;
 use chrono::Local;
-use clap::{App, crate_version, crate_description, crate_authors, crate_name, load_yaml};
+use clap::{crate_authors, crate_description, crate_name, crate_version, load_yaml, App};
+use log::LevelFilter;
 
 fn initialize_logging() {
     // configure the logging framework and set the corresponding log level
@@ -35,6 +35,4 @@ fn main() {
         .name(crate_name!())
         .about(crate_description!())
         .get_matches();
-
-
 }
