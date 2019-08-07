@@ -10,4 +10,5 @@ chrono = "*"
 clap = {version = "*", features = ["yaml"]}
 fern = "*"
 log = "*"
+rpassword = "*"
 rust-crypto = "*"
