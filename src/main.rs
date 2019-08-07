@@ -29,7 +29,7 @@ fn main() {
 
     // configure the command line parser
     let configuration_parser_config = load_yaml!("cli.yml");
-    let matches = App::from_yaml(configuration_parser_config)
+    let _matches = App::from_yaml(configuration_parser_config)
         .author(crate_authors!())
         .version(crate_version!())
         .name(crate_name!())
