@@ -1,0 +1,8 @@
+name: <filled automatically>
+version: <filled automatically>
+author: <filled automatically>
+about: <filled automatically>
+args:
+  - password-hashes:
+      index: 1
+      help: The file (unzipped) with all currently known password hashes which were leaked in the past.
