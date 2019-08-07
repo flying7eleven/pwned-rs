@@ -76,6 +76,24 @@ impl HaveIBeenPwnedParser {
         // return the successfully created instance of the parser
         Ok(HaveIBeenPwnedParser {})
     }
+
+    /// Get the number of occurrences of a password according to the loaded hash file.
+    ///
+    /// # Example
+    /// ```
+    /// use pwned_rs::HaveIBeenPwnedParser;
+    ///
+    /// match HaveIBeenPwnedParser::from_file("/path/to/the/hash/file.txt") {
+    ///     Ok(instance) => {
+    ///         let number_of_occurrences = instance.get_usage_count("password");
+    ///         println!("The password 'password' was used {} times", number_of_occurrences);
+    ///     },
+    ///     Err(error) => println!("Could not get an instance, the error was: {}", error)
+    /// }
+    /// ```
+    pub fn get_usage_count(&self, _password: &str) -> u64 {
+        0
+    }
 }
 
 #[cfg(test)]
