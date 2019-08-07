@@ -1,5 +1,6 @@
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::io::Error;
+use std::str::FromStr;
 
 /// The possible errors which can occur on instantiation of the [HaveIBeenPwnedParser](struct.HaveIBeenPwnedParser.html) class.
 #[derive(Debug)]
@@ -93,6 +94,35 @@ impl HaveIBeenPwnedParser {
     /// ```
     pub fn get_usage_count(&self, _password: &str) -> u64 {
         0
+    }
+}
+
+impl FromStr for HaveIBeenPwnedParser {
+    type Err = CreateInstanceError;
+
+    /// Get a new instance of the parser based on a provided content string.
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error in the following situations, but is not
+    /// limited to just these cases:
+    ///
+    ///  * The format of the lines in the text file does not match the required format.
+    ///
+    /// # Example
+    /// ```
+    /// use pwned_rs::HaveIBeenPwnedParser;
+    /// use std::str::FromStr;
+    ///
+    /// let sample_list = "5baa61e4c9b93f3f0682250b6cf8331b7ee68fd8:4\ne731a7b612ab389fcb7f973c452f33df3eb69c99:24";
+    ///
+    /// match HaveIBeenPwnedParser::from_str(sample_list) {
+    ///     Ok(instance) => println!("Got an instance of the file parser!"),
+    ///     Err(error) => println!("Could not get an instance, the error was: {}", error)
+    /// }
+    /// ```
+    fn from_str(_input_data: &str) -> Result<Self, Self::Err> {
+        Ok(HaveIBeenPwnedParser {})
     }
 }
 
