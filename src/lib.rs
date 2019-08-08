@@ -148,10 +148,17 @@ impl FromStr for HaveIBeenPwnedParser {
 
         // loop through all password lines and add them to our new hash map
         for password_line in splitted_input {
+            // if at least one of the lines does not contain the required colon as separator, the input is invalid
+            if !password_line.contains(":") {
+                return Err(CreateInstanceError::Format(
+                    FormatErrorKind::LineFormatNotCorrect,
+                ));
+            }
+
             let mut entry_splitted = password_line.split(':');
 
             // get the single values
-            let key = entry_splitted.next().unwrap();
+            let key = entry_splitted.next().unwrap().to_lowercase();
             let value = entry_splitted.next().unwrap().parse::<u64>().unwrap();
 
             // add the newly parsed entry to our hash map
@@ -179,8 +186,36 @@ mod tests {
     }
 
     #[test]
+    fn getting_instance_from_invalid_string_input_deals_with_it_correctly() {
+        let sample_list =
+            "5baa61e4c9b93f3f0682250b6cf8331b7ee68fd8\ne731a7b612ab389fcb7f973c452f33df3eb69c99";
+        let maybe_instance = HaveIBeenPwnedParser::from_str(sample_list);
+
+        assert_eq!(true, maybe_instance.is_err());
+        let instance = maybe_instance.err().unwrap();
+        assert_eq!(
+            true,
+            instance
+                .to_string()
+                .contains("format of lines does not match the required format")
+        );
+    }
+
+    #[test]
     fn getting_the_usage_count_from_a_string_instance_works() {
         let sample_list = "5baa61e4c9b93f3f0682250b6cf8331b7ee68fd8:4\ne731a7b612ab389fcb7f973c452f33df3eb69c99:24";
+        let maybe_instance = HaveIBeenPwnedParser::from_str(sample_list);
+
+        assert_eq!(true, maybe_instance.is_ok());
+        let instance = maybe_instance.unwrap();
+        assert_eq!(4, instance.get_usage_count("password"));
+        assert_eq!(24, instance.get_usage_count("p4ssw0rd"));
+        assert_eq!(0, instance.get_usage_count("not_included"));
+    }
+
+    #[test]
+    fn getting_the_usage_count_from_a_string_instance_works_case_insensitive() {
+        let sample_list = "5BAA61E4C9B93F3F0682250B6CF8331B7EE68FD8:4\nE731A7B612AB389FCB7F973C452F33DF3EB69C99:24";
         let maybe_instance = HaveIBeenPwnedParser::from_str(sample_list);
 
         assert_eq!(true, maybe_instance.is_ok());
