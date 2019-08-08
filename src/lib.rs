@@ -149,17 +149,31 @@ impl FromStr for HaveIBeenPwnedParser {
         // loop through all password lines and add them to our new hash map
         for password_line in splitted_input {
             // if at least one of the lines does not contain the required colon as separator, the input is invalid
-            if !password_line.contains(":") {
+            if !password_line.contains(':') {
                 return Err(CreateInstanceError::Format(
                     FormatErrorKind::LineFormatNotCorrect,
                 ));
             }
 
+            // split the line at the colon. left side is the hash and the right side is the # of occurrences
             let mut entry_splitted = password_line.split(':');
 
-            // get the single values
-            let key = entry_splitted.next().unwrap().to_lowercase();
-            let value = entry_splitted.next().unwrap().parse::<u64>().unwrap();
+            // get the hash for
+            let key = match entry_splitted.next() {
+                Some(key_text) => key_text.to_lowercase(),
+                None => return Err(CreateInstanceError::Format(FormatErrorKind::LineFormatNotCorrect)),
+            };
+
+            // try to get the number of occurrences of the password hash
+            let value = match entry_splitted.next() {
+                Some(value_text) => {
+                    match value_text.parse::<u64>() {
+                        Ok(value_as_int) => value_as_int,
+                        Err(_) => return Err(CreateInstanceError::Format(FormatErrorKind::LineFormatNotCorrect)),
+                    }
+                },
+                None => return Err(CreateInstanceError::Format(FormatErrorKind::LineFormatNotCorrect)),
+            };
 
             // add the newly parsed entry to our hash map
             new_hash_map.insert(key.to_string(), value);
