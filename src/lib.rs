@@ -161,18 +161,28 @@ impl FromStr for HaveIBeenPwnedParser {
             // get the hash for
             let key = match entry_splitted.next() {
                 Some(key_text) => key_text.to_lowercase(),
-                None => return Err(CreateInstanceError::Format(FormatErrorKind::LineFormatNotCorrect)),
+                None => {
+                    return Err(CreateInstanceError::Format(
+                        FormatErrorKind::LineFormatNotCorrect,
+                    ))
+                }
             };
 
             // try to get the number of occurrences of the password hash
             let value = match entry_splitted.next() {
-                Some(value_text) => {
-                    match value_text.parse::<u64>() {
-                        Ok(value_as_int) => value_as_int,
-                        Err(_) => return Err(CreateInstanceError::Format(FormatErrorKind::LineFormatNotCorrect)),
+                Some(value_text) => match value_text.parse::<u64>() {
+                    Ok(value_as_int) => value_as_int,
+                    Err(_) => {
+                        return Err(CreateInstanceError::Format(
+                            FormatErrorKind::LineFormatNotCorrect,
+                        ))
                     }
                 },
-                None => return Err(CreateInstanceError::Format(FormatErrorKind::LineFormatNotCorrect)),
+                None => {
+                    return Err(CreateInstanceError::Format(
+                        FormatErrorKind::LineFormatNotCorrect,
+                    ))
+                }
             };
 
             // add the newly parsed entry to our hash map
@@ -203,6 +213,22 @@ mod tests {
     fn getting_instance_from_invalid_string_input_deals_with_it_correctly() {
         let sample_list =
             "5baa61e4c9b93f3f0682250b6cf8331b7ee68fd8\ne731a7b612ab389fcb7f973c452f33df3eb69c99";
+        let maybe_instance = HaveIBeenPwnedParser::from_str(sample_list);
+
+        assert_eq!(true, maybe_instance.is_err());
+        let instance = maybe_instance.err().unwrap();
+        assert_eq!(
+            true,
+            instance
+                .to_string()
+                .contains("format of lines does not match the required format")
+        );
+    }
+
+    #[test]
+    fn getting_instance_from_string_with_invalid_hash_count_format_will_be_handles_correctly() {
+        let sample_list =
+            "5baa61e4c9b93f3f0682250b6cf8331b7ee68fd8:10\ne731a7b612ab389fcb7f973c452f33df3eb69c99:SDSDSDSD";
         let maybe_instance = HaveIBeenPwnedParser::from_str(sample_list);
 
         assert_eq!(true, maybe_instance.is_err());
