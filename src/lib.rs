@@ -1,8 +1,10 @@
 use crypto::digest::Digest;
 use crypto::sha1::Sha1;
+use log::debug;
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter, Result as FmtResult};
-use std::io::Error;
+use std::fs::OpenOptions;
+use std::io::{BufRead, BufReader, Error};
 use std::str::FromStr;
 
 /// The possible errors which can occur on instantiation of the [HaveIBeenPwnedParser](struct.HaveIBeenPwnedParser.html) class.
@@ -78,6 +80,20 @@ impl HaveIBeenPwnedParser {
             Ok(data) => data,
             Err(error) => return Err(CreateInstanceError::Io(error)),
         };
+
+        // try to figure our how many entries are stored in the file
+        let number_of_entries = match OpenOptions::new()
+            .append(false)
+            .create(false)
+            .open(&path_to_file)
+        {
+            Ok(file_handle) => BufReader::new(file_handle).lines().count(),
+            Err(error) => return Err(CreateInstanceError::Io(error)),
+        };
+        debug!(
+            "Found {} entries in the password hash file",
+            number_of_entries
+        );
 
         // return the successfully created instance of the parser
         Ok(HaveIBeenPwnedParser {
@@ -188,6 +204,10 @@ impl FromStr for HaveIBeenPwnedParser {
             // add the newly parsed entry to our hash map
             new_hash_map.insert(key.to_string(), value);
         }
+        debug!(
+            "Found {} entries in the password hash string",
+            new_hash_map.len()
+        );
 
         // return the newly created instance
         Ok(HaveIBeenPwnedParser {
