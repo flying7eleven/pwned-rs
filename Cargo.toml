@@ -13,6 +13,7 @@ path = "src/bin/main.rs"
 chrono = "*"
 clap = {version = "*", features = ["yaml"]}
 fern = "*"
+indicatif = "*"
 log = "*"
 rpassword = "*"
 rust-crypto = "*"
