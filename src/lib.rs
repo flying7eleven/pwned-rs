@@ -85,6 +85,7 @@ impl HaveIBeenPwnedParser {
         let number_of_entries = match OpenOptions::new()
             .append(false)
             .create(false)
+            .read(true)
             .open(&path_to_file)
         {
             Ok(file_handle) => BufReader::new(file_handle).lines().count(),

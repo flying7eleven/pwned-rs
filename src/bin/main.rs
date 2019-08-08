@@ -1,6 +1,6 @@
 use chrono::Local;
 use clap::{crate_authors, crate_description, crate_name, crate_version, load_yaml, App};
-use log::{error, LevelFilter, debug};
+use log::{debug, error, LevelFilter};
 use pwned_rs::HaveIBeenPwnedParser;
 use std::process::exit;
 
