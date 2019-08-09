@@ -2,7 +2,7 @@ pub mod subcommands;
 
 use crypto::digest::Digest;
 use crypto::sha1::Sha1;
-use log::debug;
+use log::{debug, error};
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::fs::{File, OpenOptions};
@@ -58,7 +58,7 @@ pub struct HaveIBeenPwnedParser {
 
 /// This struct is used to represent a single password hash entry.
 pub struct PasswordHashEntry {
-    _hash: String,
+    hash: String,
     _occurrences: u64,
     entry_size: u64,
 }
@@ -263,21 +263,44 @@ impl Iterator for HaveIBeenPwnedParser {
         };
 
         // get the next line from the file
-        let mut buf = String::new();
-        let entry_line = match password_file_reader.read_line(&mut buf) {
-            Ok(_) => buf,
+        let mut entry_line = String::new();
+        let line_length = match password_file_reader.read_line(&mut entry_line) {
+            Ok(length) => length,
             Err(_) => return None,
         };
 
         //
-        let parsed_hash = entry_line.clone();
-        let password_occurences = 0;
+        let mut entry_splitted = entry_line.trim().split(':');
+
+        //
+        let password_hash = match entry_splitted.next() {
+            Some(key_text) => key_text.to_lowercase(),
+            None => {
+                error!("Could not get the password hash part of the entry!");
+                return None;
+            }
+        };
+
+        // try to get the number of occurrences of the password hash
+        let occurrences = match entry_splitted.next() {
+            Some(value_text) => match value_text.parse::<u64>() {
+                Ok(value_as_int) => value_as_int,
+                Err(_) => {
+                    error!("Could not parse the number of occurrences of the password. Maybe \"{}\" not a number.", value_text);
+                    return None;
+                }
+            },
+            None => {
+                error!("Could not get the occurrence count.");
+                return None;
+            }
+        };
 
         // return the parsed password entry
         Some(PasswordHashEntry {
-            _hash: parsed_hash,
-            _occurrences: password_occurences,
-            entry_size: entry_line.len() as u64,
+            hash: password_hash,
+            _occurrences: occurrences,
+            entry_size: line_length as u64,
         })
     }
 }
@@ -285,6 +308,11 @@ impl Iterator for HaveIBeenPwnedParser {
 impl PasswordHashEntry {
     pub fn get_size_in_bytes(&self) -> u64 {
         self.entry_size
+    }
+
+    pub fn get_prefix(&self) -> String {
+        let cloned_hash = self.hash.clone();
+        cloned_hash[..5].to_string()
     }
 }
 

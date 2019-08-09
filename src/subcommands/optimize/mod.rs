@@ -1,7 +1,7 @@
 use crate::HaveIBeenPwnedParser;
 use clap::ArgMatches;
 use indicatif::{ProgressBar, ProgressStyle};
-use log::{debug, error};
+use log::{debug, error, info};
 use std::cmp::min;
 use std::process::exit;
 
@@ -55,12 +55,21 @@ pub fn run_subcommand(matches: &ArgMatches) {
 
     // start processing (and optimizing) the information stored in the password hash file
     let mut processed_bytes = 0;
+    let mut last_prefix = "".to_string();
+    let mut number_of_subfiles = 0;
     while processed_bytes < file_size {
         // get the entry or exit the loop if there is no next entry
         let password_hash_entry = match parser.next() {
             Some(entry) => entry,
             None => break,
         };
+
+        //
+        let current_prefix = password_hash_entry.get_prefix();
+        if !last_prefix.eq_ignore_ascii_case(current_prefix.as_str()) {
+            number_of_subfiles += 1;
+            last_prefix = current_prefix;
+        }
 
         // set the new current position for the progress bar
         let new = min(
@@ -70,4 +79,10 @@ pub fn run_subcommand(matches: &ArgMatches) {
         processed_bytes = new;
         progress_bar.set_position(new);
     }
+    progress_bar.finish_with_message("optimized");
+
+    info!(
+        "Optimized password database and splitted it into {} files",
+        number_of_subfiles
+    );
 }
