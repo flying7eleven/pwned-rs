@@ -1,6 +1,8 @@
 use crate::HaveIBeenPwnedParser;
 use clap::ArgMatches;
+use indicatif::{ProgressBar, ProgressStyle};
 use log::{debug, error};
+use std::cmp::min;
 use std::process::exit;
 
 pub fn run_subcommand(matches: &ArgMatches) {
@@ -25,7 +27,7 @@ pub fn run_subcommand(matches: &ArgMatches) {
     debug!("Got {} as the output folder", output_folder);
 
     // get an instance of the password parser
-    let _parser = match HaveIBeenPwnedParser::from_file(password_hash_path) {
+    let mut parser = match HaveIBeenPwnedParser::from_file(password_hash_path) {
         Ok(parser) => parser,
         Err(error) => {
             error!(
@@ -35,4 +37,37 @@ pub fn run_subcommand(matches: &ArgMatches) {
             exit(-2);
         }
     };
+
+    // try to get the size of the whole password file
+    let file_size = match parser.get_file_size() {
+        Some(size) => size,
+        None => {
+            error!("Could not determine the size of the original password file.");
+            exit(-3);
+        }
+    };
+
+    // get an instance from  the progress bar to indicate the optimization progress
+    let progress_bar = ProgressBar::new(file_size);
+    progress_bar.set_style(ProgressStyle::default_bar()
+        .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {bytes}/{total_bytes} ({eta})")
+        .progress_chars("#>-"));
+
+    // start processing (and optimizing) the information stored in the password hash file
+    let mut processed_bytes = 0;
+    while processed_bytes < file_size {
+        // get the entry or exit the loop if there is no next entry
+        let password_hash_entry = match parser.next() {
+            Some(entry) => entry,
+            None => break,
+        };
+
+        // set the new current position for the progress bar
+        let new = min(
+            processed_bytes + password_hash_entry.get_size_in_bytes(),
+            file_size,
+        );
+        processed_bytes = new;
+        progress_bar.set_position(new);
+    }
 }

@@ -56,6 +56,13 @@ pub struct HaveIBeenPwnedParser {
     password_file: Option<BufReader<File>>,
 }
 
+/// This struct is used to represent a single password hash entry.
+pub struct PasswordHashEntry {
+    _hash: String,
+    _occurrences: u64,
+    entry_size: u64,
+}
+
 impl HaveIBeenPwnedParser {
     /// Get a new instance of the file parsed based on the provided file path.
     ///
@@ -242,6 +249,42 @@ impl FromStr for HaveIBeenPwnedParser {
             password_file: None,
             file_size: 0,
         })
+    }
+}
+
+impl Iterator for HaveIBeenPwnedParser {
+    type Item = PasswordHashEntry;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        // be sure that we are running in file mode, otherwise we can return immediately
+        let password_file_reader = match &mut self.password_file {
+            Some(reader) => reader,
+            None => return None,
+        };
+
+        // get the next line from the file
+        let mut buf = String::new();
+        let entry_line = match password_file_reader.read_line(&mut buf) {
+            Ok(_) => buf,
+            Err(_) => return None,
+        };
+
+        //
+        let parsed_hash = entry_line.clone();
+        let password_occurences = 0;
+
+        // return the parsed password entry
+        Some(PasswordHashEntry {
+            _hash: parsed_hash,
+            _occurrences: password_occurences,
+            entry_size: entry_line.len() as u64,
+        })
+    }
+}
+
+impl PasswordHashEntry {
+    pub fn get_size_in_bytes(&self) -> u64 {
+        self.entry_size
     }
 }
 
