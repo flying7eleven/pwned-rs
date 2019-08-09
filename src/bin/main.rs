@@ -1,8 +1,7 @@
 use chrono::Local;
 use clap::{crate_authors, crate_description, crate_name, crate_version, load_yaml, App};
-use log::{debug, error, LevelFilter};
-use pwned_rs::HaveIBeenPwnedParser;
-use std::process::exit;
+use log::{error, LevelFilter};
+use pwned_rs::subcommands::optimize::run_subcommand as run_subcommand_optimize;
 
 fn initialize_logging() {
     // configure the logging framework and set the corresponding log level
@@ -38,25 +37,10 @@ fn main() {
         .about(crate_description!())
         .get_matches();
 
-    // get the path to the password file
-    let password_hash_path = match matches.value_of("password-hashes") {
-        Some(path) => path,
-        None => {
-            error!("It seems that the path the the password hashes was not provided, please see the help for usage instructions.");
-            exit(-1);
-        }
-    };
-    debug!("Got {} as a password hash file", password_hash_path);
-
-    // get an instance of the password parser
-    let _parser = match HaveIBeenPwnedParser::from_file(password_hash_path) {
-        Ok(parser) => parser,
-        Err(error) => {
-            error!(
-                "Could not get an instance of the parser. The error was: {}",
-                error
-            );
-            exit(-2);
-        }
-    };
+    // check which subcommand should be executed and call it
+    if let Some(matches) = matches.subcommand_matches("optimize") {
+        run_subcommand_optimize(matches);
+    } else {
+        error!("No known subcommand was selected. Please refer to the help for information about how to use this application.");
+    }
 }

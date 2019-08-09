@@ -2,7 +2,13 @@ name: <filled automatically>
 version: <filled automatically>
 author: <filled automatically>
 about: <filled automatically>
-args:
-  - password-hashes:
-      index: 1
-      help: The file (unzipped) with all currently known password hashes which were leaked in the past.
+subcommands:
+  - optimize:
+      about: Read the original password hash file and optimize it for quicker search.
+      args:
+        - password-hashes:
+            index: 1
+            help: The file (unzipped) with all currently known password hashes which were leaked in the past.
+        - output-folder:
+            index: 2
+            help: The folder in with the optimized files should be stored.

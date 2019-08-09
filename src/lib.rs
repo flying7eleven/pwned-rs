@@ -1,3 +1,5 @@
+pub mod subcommands;
+
 use crypto::digest::Digest;
 use crypto::sha1::Sha1;
 use log::debug;
