@@ -5,8 +5,7 @@ use crypto::sha1::Sha1;
 use log::debug;
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter, Result as FmtResult};
-use std::fs::OpenOptions;
-use std::io::{BufRead, BufReader, Error};
+use std::io::Error;
 use std::str::FromStr;
 
 /// The possible errors which can occur on instantiation of the [HaveIBeenPwnedParser](struct.HaveIBeenPwnedParser.html) class.
@@ -52,6 +51,7 @@ impl Display for CreateInstanceError {
 /// This class can be used to parse the password files provided by https://haveibeenpwned.com.
 pub struct HaveIBeenPwnedParser {
     known_password_hashes: Option<HashMap<String, u64>>,
+    file_size: u64,
 }
 
 impl HaveIBeenPwnedParser {
@@ -78,29 +78,15 @@ impl HaveIBeenPwnedParser {
     /// ```
     pub fn from_file(path_to_file: &str) -> Result<HaveIBeenPwnedParser, CreateInstanceError> {
         // be sure that the file exists, if not we should return a proper error which the caller can deal with
-        let _file_meta_data = match std::fs::metadata(path_to_file) {
+        let file_meta_data = match std::fs::metadata(path_to_file) {
             Ok(data) => data,
             Err(error) => return Err(CreateInstanceError::Io(error)),
         };
 
-        // try to figure our how many entries are stored in the file
-        let number_of_entries = match OpenOptions::new()
-            .append(false)
-            .create(false)
-            .read(true)
-            .open(&path_to_file)
-        {
-            Ok(file_handle) => BufReader::new(file_handle).lines().count(),
-            Err(error) => return Err(CreateInstanceError::Io(error)),
-        };
-        debug!(
-            "Found {} entries in the password hash file",
-            number_of_entries
-        );
-
         // return the successfully created instance of the parser
         Ok(HaveIBeenPwnedParser {
             known_password_hashes: None,
+            file_size: file_meta_data.len(),
         })
     }
 
@@ -134,6 +120,30 @@ impl HaveIBeenPwnedParser {
             }
             None => 0,
         }
+    }
+
+    /// Get the size of the original password file.
+    ///
+    /// # Example
+    /// ```
+    /// use pwned_rs::HaveIBeenPwnedParser;
+    ///
+    /// match HaveIBeenPwnedParser::from_file("/path/to/the/hash/file.txt") {
+    ///     Ok(instance) => {
+    ///         let file_size = match instance.get_file_size() {
+    ///             Some(size) => size,
+    ///             None => panic!("It seems that the instance of this object was not created using a file."),
+    ///         };
+    ///         println!("The original password file is {} bytes long", file_size);
+    ///     },
+    ///     Err(error) => println!("Could not get an instance, the error was: {}", error)
+    /// }
+    /// ```
+    pub fn get_file_size(&self) -> Option<u64> {
+        if self.file_size > 0 {
+            return Some(self.file_size);
+        }
+        None
     }
 }
 
@@ -215,6 +225,7 @@ impl FromStr for HaveIBeenPwnedParser {
         // return the newly created instance
         Ok(HaveIBeenPwnedParser {
             known_password_hashes: Some(new_hash_map),
+            file_size: 0,
         })
     }
 }
