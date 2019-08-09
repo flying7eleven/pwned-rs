@@ -5,7 +5,8 @@ use crypto::sha1::Sha1;
 use log::debug;
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter, Result as FmtResult};
-use std::io::Error;
+use std::fs::{File, OpenOptions};
+use std::io::{BufRead, BufReader, Error};
 use std::str::FromStr;
 
 /// The possible errors which can occur on instantiation of the [HaveIBeenPwnedParser](struct.HaveIBeenPwnedParser.html) class.
@@ -52,6 +53,7 @@ impl Display for CreateInstanceError {
 pub struct HaveIBeenPwnedParser {
     known_password_hashes: Option<HashMap<String, u64>>,
     file_size: u64,
+    password_file: Option<BufReader<File>>,
 }
 
 impl HaveIBeenPwnedParser {
@@ -83,9 +85,21 @@ impl HaveIBeenPwnedParser {
             Err(error) => return Err(CreateInstanceError::Io(error)),
         };
 
+        // try to figure our how many entries are stored in the file
+        let file_reader = match OpenOptions::new()
+            .append(false)
+            .create(false)
+            .read(true)
+            .open(&path_to_file)
+        {
+            Ok(file_handle) => BufReader::new(file_handle),
+            Err(error) => return Err(CreateInstanceError::Io(error)),
+        };
+
         // return the successfully created instance of the parser
         Ok(HaveIBeenPwnedParser {
             known_password_hashes: None,
+            password_file: Some(file_reader),
             file_size: file_meta_data.len(),
         })
     }
@@ -140,7 +154,7 @@ impl HaveIBeenPwnedParser {
     /// }
     /// ```
     pub fn get_file_size(&self) -> Option<u64> {
-        if self.file_size > 0 {
+        if self.password_file.is_some() {
             return Some(self.file_size);
         }
         None
@@ -225,6 +239,7 @@ impl FromStr for HaveIBeenPwnedParser {
         // return the newly created instance
         Ok(HaveIBeenPwnedParser {
             known_password_hashes: Some(new_hash_map),
+            password_file: None,
             file_size: 0,
         })
     }
