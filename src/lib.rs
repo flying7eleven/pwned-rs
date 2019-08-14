@@ -59,7 +59,7 @@ pub struct HaveIBeenPwnedParser {
 /// This struct is used to represent a single password hash entry.
 pub struct PasswordHashEntry {
     hash: String,
-    _occurrences: u64,
+    occurrences: u64,
     entry_size: u64,
 }
 
@@ -299,7 +299,7 @@ impl Iterator for HaveIBeenPwnedParser {
         // return the parsed password entry
         Some(PasswordHashEntry {
             hash: password_hash,
-            _occurrences: occurrences,
+            occurrences,
             entry_size: line_length as u64,
         })
     }
@@ -313,6 +313,10 @@ impl PasswordHashEntry {
     pub fn get_prefix(&self) -> String {
         let cloned_hash = self.hash.clone();
         cloned_hash[..5].to_string()
+    }
+
+    pub fn get_line_to_write(&self) -> String {
+        format!("{}:{}\n", self.hash, self.occurrences)
     }
 }
 

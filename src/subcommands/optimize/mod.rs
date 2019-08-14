@@ -3,6 +3,8 @@ use clap::ArgMatches;
 use indicatif::{ProgressBar, ProgressStyle};
 use log::{debug, error, info};
 use std::cmp::min;
+use std::fs::{File, OpenOptions};
+use std::io::Write;
 use std::path::Path;
 use std::process::exit;
 
@@ -67,6 +69,14 @@ pub fn run_subcommand(matches: &ArgMatches) {
     let mut processed_bytes = 0;
     let mut last_prefix = "".to_string();
     let mut number_of_subfiles = 0;
+    let mut output_file_name = Path::new(output_folder).join("tmp_file.txt");
+    let mut current_output_file: File = OpenOptions::new()
+        .write(true)
+        .append(false)
+        .read(false)
+        .create(true)
+        .open(output_file_name)
+        .unwrap();
     while processed_bytes < file_size {
         // get the entry or exit the loop if there is no next entry
         let password_hash_entry = match parser.next() {
@@ -74,12 +84,36 @@ pub fn run_subcommand(matches: &ArgMatches) {
             None => break,
         };
 
-        //
+        // if the hash prefix changed, we have to change the output file into we which are writing
         let current_prefix = password_hash_entry.get_prefix();
         if !last_prefix.eq_ignore_ascii_case(current_prefix.as_str()) {
+            output_file_name = Path::new(output_folder).join(format!("{}.txt", current_prefix));
+            current_output_file = match OpenOptions::new()
+                .write(true)
+                .append(false)
+                .read(false)
+                .create(true)
+                .open(output_file_name)
+            {
+                Ok(file_handle) => file_handle,
+                Err(_) => {
+                    error!("Could not open the output file for the optimized data set.");
+                    exit(-5);
+                }
+            };
             number_of_subfiles += 1;
             last_prefix = current_prefix;
         }
+
+        // write the current entry to the file
+        let _ = match current_output_file.write(password_hash_entry.get_line_to_write().as_bytes())
+        {
+            Ok(count) => count,
+            Err(_) => {
+                error!("Could not write a password entry into the new file.");
+                exit(-6);
+            }
+        };
 
         // set the new current position for the progress bar
         let new = min(
