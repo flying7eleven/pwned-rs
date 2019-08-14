@@ -2,7 +2,7 @@ pub mod subcommands;
 
 use crypto::digest::Digest;
 use crypto::sha1::Sha1;
-use log::{debug, error};
+use log::error;
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::fs::{File, OpenOptions};
@@ -191,70 +191,6 @@ impl HaveIBeenPwnedParser {
             return Some(self.file_size);
         }
         None
-    }
-}
-
-impl FromStr for HaveIBeenPwnedParser {
-    type Err = CreateInstanceError;
-
-    /// Get a new instance of the parser based on a provided content string.
-    ///
-    /// # Errors
-    ///
-    /// This function will return an error in the following situations, but is not
-    /// limited to just these cases:
-    ///
-    ///  * The format of the lines in the text file does not match the required format.
-    ///
-    /// # Example
-    /// ```
-    /// use pwned_rs::HaveIBeenPwnedParser;
-    /// use std::str::FromStr;
-    ///
-    /// let sample_list = "5baa61e4c9b93f3f0682250b6cf8331b7ee68fd8:4\ne731a7b612ab389fcb7f973c452f33df3eb69c99:24";
-    ///
-    /// match HaveIBeenPwnedParser::from_str(sample_list) {
-    ///     Ok(instance) => println!("Got an instance of the file parser!"),
-    ///     Err(error) => println!("Could not get an instance, the error was: {}", error)
-    /// }
-    /// ```
-    fn from_str(_input_data: &str) -> Result<Self, Self::Err> {
-        let splitted_input = _input_data.split('\n');
-        let mut new_hash_map: HashMap<String, u64> = HashMap::new();
-
-        // loop through all password lines and add them to our new hash map
-        for password_line in splitted_input {
-            // try to convert the line into a PasswordHashEntry
-            let maybe_password_hash = PasswordHashEntry::from_str(password_line);
-
-            // if there was an error, map the errors to the expected ones
-            if maybe_password_hash.is_err() {
-                match maybe_password_hash.err().unwrap() {
-                    _ => {
-                        return Err(CreateInstanceError::Format(
-                            FormatErrorKind::LineFormatNotCorrect,
-                        ))
-                    }
-                }
-            }
-
-            //
-            let password_hash = maybe_password_hash.unwrap();
-
-            // add the newly parsed entry to our hash map
-            new_hash_map.insert(password_hash.get_hash(), password_hash.get_occurrences());
-        }
-        debug!(
-            "Found {} entries in the password hash string",
-            new_hash_map.len()
-        );
-
-        // return the newly created instance
-        Ok(HaveIBeenPwnedParser {
-            known_password_hashes: Some(new_hash_map),
-            password_file: None,
-            file_size: 0,
-        })
     }
 }
 
@@ -473,61 +409,5 @@ mod tests {
         assert_eq!(true, maybe_instance.is_err());
         let error = maybe_instance.err().unwrap();
         assert_eq!(true, error.to_string().contains("IO error:"));
-    }
-
-    #[test]
-    fn getting_instance_from_invalid_string_input_deals_with_it_correctly() {
-        let sample_list =
-            "5baa61e4c9b93f3f0682250b6cf8331b7ee68fd8\ne731a7b612ab389fcb7f973c452f33df3eb69c99";
-        let maybe_instance = HaveIBeenPwnedParser::from_str(sample_list);
-
-        assert_eq!(true, maybe_instance.is_err());
-        let instance = maybe_instance.err().unwrap();
-        assert_eq!(
-            true,
-            instance
-                .to_string()
-                .contains("format of lines does not match the required format")
-        );
-    }
-
-    #[test]
-    fn getting_instance_from_string_with_invalid_hash_count_format_will_be_handles_correctly() {
-        let sample_list =
-            "5baa61e4c9b93f3f0682250b6cf8331b7ee68fd8:10\ne731a7b612ab389fcb7f973c452f33df3eb69c99:SDSDSDSD";
-        let maybe_instance = HaveIBeenPwnedParser::from_str(sample_list);
-
-        assert_eq!(true, maybe_instance.is_err());
-        let instance = maybe_instance.err().unwrap();
-        assert_eq!(
-            true,
-            instance
-                .to_string()
-                .contains("format of lines does not match the required format")
-        );
-    }
-
-    #[test]
-    fn getting_the_usage_count_from_a_string_instance_works() {
-        let sample_list = "5baa61e4c9b93f3f0682250b6cf8331b7ee68fd8:4\ne731a7b612ab389fcb7f973c452f33df3eb69c99:24";
-        let maybe_instance = HaveIBeenPwnedParser::from_str(sample_list);
-
-        assert_eq!(true, maybe_instance.is_ok());
-        let instance = maybe_instance.unwrap();
-        assert_eq!(4, instance.get_usage_count("password"));
-        assert_eq!(24, instance.get_usage_count("p4ssw0rd"));
-        assert_eq!(0, instance.get_usage_count("not_included"));
-    }
-
-    #[test]
-    fn getting_the_usage_count_from_a_string_instance_works_case_insensitive() {
-        let sample_list = "5BAA61E4C9B93F3F0682250B6CF8331B7EE68FD8:4\nE731A7B612AB389FCB7F973C452F33DF3EB69C99:24";
-        let maybe_instance = HaveIBeenPwnedParser::from_str(sample_list);
-
-        assert_eq!(true, maybe_instance.is_ok());
-        let instance = maybe_instance.unwrap();
-        assert_eq!(4, instance.get_usage_count("password"));
-        assert_eq!(24, instance.get_usage_count("p4ssw0rd"));
-        assert_eq!(0, instance.get_usage_count("not_included"));
     }
 }
