@@ -318,7 +318,7 @@ impl PasswordHashEntry {
 
     pub fn get_prefix(&self) -> String {
         let cloned_hash = self.hash.clone();
-        cloned_hash[..4].to_string()
+        cloned_hash[..3].to_string()
     }
 
     pub fn get_occurrences(&self) -> u64 {
@@ -418,7 +418,7 @@ mod tests {
         let instance = maybe_instance.unwrap();
 
         assert_eq!(43, instance.get_size_in_bytes());
-        assert_eq!(input_hash[..4].to_string(), instance.get_prefix());
+        assert_eq!(input_hash[..3].to_string(), instance.get_prefix());
         assert_eq!(input_hash, instance.get_hash());
         assert_eq!(input_occurrences, instance.get_occurrences());
     }
