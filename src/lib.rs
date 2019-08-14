@@ -312,7 +312,7 @@ impl PasswordHashEntry {
 
     pub fn get_prefix(&self) -> String {
         let cloned_hash = self.hash.clone();
-        cloned_hash[..5].to_string()
+        cloned_hash[..4].to_string()
     }
 
     pub fn get_line_to_write(&self) -> String {
