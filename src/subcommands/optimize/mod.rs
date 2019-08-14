@@ -3,6 +3,7 @@ use clap::ArgMatches;
 use indicatif::{ProgressBar, ProgressStyle};
 use log::{debug, error, info};
 use std::cmp::min;
+use std::path::Path;
 use std::process::exit;
 
 pub fn run_subcommand(matches: &ArgMatches) {
@@ -18,10 +19,19 @@ pub fn run_subcommand(matches: &ArgMatches) {
 
     // get the output folder where the optimized results should be stored
     let output_folder = match matches.value_of("output-folder") {
-        Some(path) => path,
+        Some(path) => {
+            if !Path::new(path).exists() {
+                error!(
+                    "The supplied path ('{}') does not exists. Please select an existing folder.",
+                    path
+                );
+                exit(-1);
+            }
+            path
+        }
         None => {
             error!("It seems that the path where the optimized hashes should be stored was not provided, please see the help for usage instructions.");
-            exit(-1);
+            exit(-2);
         }
     };
     debug!("Got {} as the output folder", output_folder);
@@ -34,7 +44,7 @@ pub fn run_subcommand(matches: &ArgMatches) {
                 "Could not get an instance of the parser. The error was: {}",
                 error
             );
-            exit(-2);
+            exit(-3);
         }
     };
 
@@ -43,7 +53,7 @@ pub fn run_subcommand(matches: &ArgMatches) {
         Some(size) => size,
         None => {
             error!("Could not determine the size of the original password file.");
-            exit(-3);
+            exit(-4);
         }
     };
 
