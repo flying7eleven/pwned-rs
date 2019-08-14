@@ -1,6 +1,7 @@
 use chrono::Local;
 use clap::{crate_authors, crate_description, crate_name, crate_version, load_yaml, App};
 use log::{error, LevelFilter};
+use pwned_rs::subcommands::lookup::run_subcommand as run_subcommand_lookup;
 use pwned_rs::subcommands::optimize::run_subcommand as run_subcommand_optimize;
 
 fn initialize_logging() {
@@ -40,6 +41,8 @@ fn main() {
     // check which subcommand should be executed and call it
     if let Some(matches) = matches.subcommand_matches("optimize") {
         run_subcommand_optimize(matches);
+    } else if let Some(matches) = matches.subcommand_matches("lookup") {
+        run_subcommand_lookup(matches);
     } else {
         error!("No known subcommand was selected. Please refer to the help for information about how to use this application.");
     }
