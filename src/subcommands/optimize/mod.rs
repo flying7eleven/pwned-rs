@@ -62,7 +62,7 @@ pub fn run_subcommand(matches: &ArgMatches) {
     // get an instance from  the progress bar to indicate the optimization progress
     let progress_bar = ProgressBar::new(file_size);
     progress_bar.set_style(ProgressStyle::default_bar()
-        .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {bytes}/{total_bytes} ({eta})")
+        .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {bytes}/{total_bytes} ({eta_precise})")
         .progress_chars("#>-"));
 
     // start processing (and optimizing) the information stored in the password hash file
