@@ -224,45 +224,25 @@ impl FromStr for HaveIBeenPwnedParser {
 
         // loop through all password lines and add them to our new hash map
         for password_line in splitted_input {
-            // if at least one of the lines does not contain the required colon as separator, the input is invalid
-            if !password_line.contains(':') {
-                return Err(CreateInstanceError::Format(
-                    FormatErrorKind::LineFormatNotCorrect,
-                ));
-            }
+            // try to convert the line into a PasswordHashEntry
+            let maybe_password_hash = PasswordHashEntry::from_str(password_line);
 
-            // split the line at the colon. left side is the hash and the right side is the # of occurrences
-            let mut entry_splitted = password_line.split(':');
-
-            // get the hash for
-            let key = match entry_splitted.next() {
-                Some(key_text) => key_text.to_lowercase(),
-                None => {
-                    return Err(CreateInstanceError::Format(
-                        FormatErrorKind::LineFormatNotCorrect,
-                    ))
-                }
-            };
-
-            // try to get the number of occurrences of the password hash
-            let value = match entry_splitted.next() {
-                Some(value_text) => match value_text.parse::<u64>() {
-                    Ok(value_as_int) => value_as_int,
-                    Err(_) => {
+            // if there was an error, map the errors to the expected ones
+            if maybe_password_hash.is_err() {
+                match maybe_password_hash.err().unwrap() {
+                    _ => {
                         return Err(CreateInstanceError::Format(
                             FormatErrorKind::LineFormatNotCorrect,
                         ))
                     }
-                },
-                None => {
-                    return Err(CreateInstanceError::Format(
-                        FormatErrorKind::LineFormatNotCorrect,
-                    ))
                 }
-            };
+            }
+
+            //
+            let password_hash = maybe_password_hash.unwrap();
 
             // add the newly parsed entry to our hash map
-            new_hash_map.insert(key.to_string(), value);
+            new_hash_map.insert(password_hash.get_hash(), password_hash.get_occurrences());
         }
         debug!(
             "Found {} entries in the password hash string",
