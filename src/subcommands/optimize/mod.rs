@@ -1,4 +1,4 @@
-use crate::HaveIBeenPwnedParser;
+use crate::haveibeenpwned::HaveIBeenPwnedParser;
 use clap::ArgMatches;
 use indicatif::{ProgressBar, ProgressStyle};
 use log::{debug, error, info};
