@@ -17,3 +17,4 @@ indicatif = "*"
 log = "*"
 rpassword = "*"
 rust-crypto = "*"
+secstr = {version = "*", features = ["libsodium-sys"]}
