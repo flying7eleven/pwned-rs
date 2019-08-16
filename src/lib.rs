@@ -62,10 +62,10 @@ impl PasswordHashEntry {
         format!("{}:{}\n", self.hash, self.occurrences)
     }
 
-    pub fn from_password(password: &String) -> PasswordHashEntry {
+    pub fn from_password(password: &str) -> PasswordHashEntry {
         // hash the input password
         let mut hasher = Sha1::new();
-        hasher.input_str(password.as_str());
+        hasher.input_str(password);
         let hashed_password = hasher.result_str();
 
         // return the created object
