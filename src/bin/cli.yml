@@ -3,6 +3,12 @@ version: <filled automatically>
 author: <filled automatically>
 about: <filled automatically>
 subcommands:
+  - lookup:
+      about: Search for passwords in the optimized password hash database.
+      args:
+        - optimized-db-folder:
+            index: 1
+            help: The path to the folder with the content of the optimized password database.
   - optimize:
       about: Read the original password hash file and optimize it for quicker search.
       args:
