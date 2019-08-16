@@ -45,12 +45,12 @@ impl Display for CreateInstanceError {
 }
 
 /// This class can be used to parse the password files provided by https://haveibeenpwned.com.
-pub struct HaveIBeenPwnedParser {
+pub struct DatabaseIterator {
     file_size: u64,
     password_file: Option<BufReader<File>>,
 }
 
-impl HaveIBeenPwnedParser {
+impl DatabaseIterator {
     /// Get a new instance of the file parsed based on the provided file path.
     ///
     /// # Errors
@@ -65,14 +65,14 @@ impl HaveIBeenPwnedParser {
     ///
     /// # Example
     /// ```
-    /// use pwned_rs::haveibeenpwned::HaveIBeenPwnedParser;
+    /// use pwned_rs::haveibeenpwned::DatabaseIterator;
     ///
-    /// match HaveIBeenPwnedParser::from_file("/path/to/the/hash/file.txt") {
+    /// match DatabaseIterator::from_file("/path/to/the/hash/file.txt") {
     ///     Ok(instance) => println!("Got an instance of the file parser!"),
     ///     Err(error) => println!("Could not get an instance, the error was: {}", error)
     /// }
     /// ```
-    pub fn from_file(path_to_file: &str) -> Result<HaveIBeenPwnedParser, CreateInstanceError> {
+    pub fn from_file(path_to_file: &str) -> Result<DatabaseIterator, CreateInstanceError> {
         // be sure that the file exists, if not we should return a proper error which the caller can deal with
         let file_meta_data = match std::fs::metadata(path_to_file) {
             Ok(data) => data,
@@ -91,7 +91,7 @@ impl HaveIBeenPwnedParser {
         };
 
         // return the successfully created instance of the parser
-        Ok(HaveIBeenPwnedParser {
+        Ok(DatabaseIterator {
             password_file: Some(file_reader),
             file_size: file_meta_data.len(),
         })
@@ -101,16 +101,16 @@ impl HaveIBeenPwnedParser {
     ///
     /// # Example
     /// ```
-    /// use pwned_rs::haveibeenpwned::HaveIBeenPwnedParser;
+    /// use pwned_rs::haveibeenpwned::DatabaseIterator;
     ///
-    /// match HaveIBeenPwnedParser::from_file("/path/to/the/hash/file.txt") {
+    /// match DatabaseIterator::from_file("/path/to/the/hash/file.txt") {
     ///     Ok(instance) => {
     ///         let file_size = match instance.get_file_size() {
     ///             Some(size) => size,
     ///             None => panic!("It seems that the instance of this object was not created using a file."),
     ///         };
     ///         println!("The original password file is {} bytes long", file_size);
-    ///     },
+    ///     }
     ///     Err(error) => println!("Could not get an instance, the error was: {}", error)
     /// }
     /// ```
@@ -122,7 +122,7 @@ impl HaveIBeenPwnedParser {
     }
 }
 
-impl Iterator for HaveIBeenPwnedParser {
+impl Iterator for DatabaseIterator {
     type Item = PasswordHashEntry;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -181,7 +181,7 @@ mod tests {
 
     #[test]
     fn creating_instance_with_invalid_path_fails() {
-        let maybe_instance = HaveIBeenPwnedParser::from_file("/this/file/does/not/exist.txt");
+        let maybe_instance = DatabaseIterator::from_file("/this/file/does/not/exist.txt");
 
         assert_eq!(true, maybe_instance.is_err());
         let error = maybe_instance.err().unwrap();

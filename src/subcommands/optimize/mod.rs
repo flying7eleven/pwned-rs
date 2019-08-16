@@ -1,4 +1,4 @@
-use crate::haveibeenpwned::HaveIBeenPwnedParser;
+use crate::haveibeenpwned::DatabaseIterator;
 use clap::ArgMatches;
 use indicatif::{ProgressBar, ProgressStyle};
 use log::{debug, error, info};
@@ -39,7 +39,7 @@ pub fn run_subcommand(matches: &ArgMatches) {
     debug!("Got {} as the output folder", output_folder);
 
     // get an instance of the password parser
-    let mut parser = match HaveIBeenPwnedParser::from_file(password_hash_path) {
+    let mut parser = match DatabaseIterator::from_file(password_hash_path) {
         Ok(parser) => parser,
         Err(error) => {
             error!(
