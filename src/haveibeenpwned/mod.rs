@@ -3,6 +3,7 @@ use log::error;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::fs::{File, OpenOptions};
 use std::io::{BufRead, BufReader, Error};
+use std::path::Path;
 
 /// The possible errors which can occur on instantiation of the [HaveIBeenPwnedParser](struct.HaveIBeenPwnedParser.html) class.
 #[derive(Debug)]
@@ -172,6 +173,14 @@ impl Iterator for DatabaseIterator {
             occurrences,
             entry_size: line_length as u64,
         })
+    }
+}
+
+pub struct DatabaseReader;
+
+impl DatabaseReader {
+    pub fn from_file(_path_to_file: &Path) -> Result<DatabaseReader, CreateInstanceError> {
+        Err(CreateInstanceError::Format(FormatErrorKind::NotATextFile))
     }
 }
 
