@@ -1,8 +1,5 @@
 use crate::PasswordHashEntry;
-use crypto::digest::Digest;
-use crypto::sha1::Sha1;
 use log::error;
-use std::collections::HashMap;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::fs::{File, OpenOptions};
 use std::io::{BufRead, BufReader, Error};
@@ -49,7 +46,6 @@ impl Display for CreateInstanceError {
 
 /// This class can be used to parse the password files provided by https://haveibeenpwned.com.
 pub struct HaveIBeenPwnedParser {
-    known_password_hashes: Option<HashMap<String, u64>>,
     file_size: u64,
     password_file: Option<BufReader<File>>,
 }
@@ -96,42 +92,9 @@ impl HaveIBeenPwnedParser {
 
         // return the successfully created instance of the parser
         Ok(HaveIBeenPwnedParser {
-            known_password_hashes: None,
             password_file: Some(file_reader),
             file_size: file_meta_data.len(),
         })
-    }
-
-    /// Get the number of occurrences of a password according to the loaded hash file.
-    ///
-    /// # Example
-    /// ```
-    /// use pwned_rs::haveibeenpwned::HaveIBeenPwnedParser;
-    ///
-    /// match HaveIBeenPwnedParser::from_file("/path/to/the/hash/file.txt") {
-    ///     Ok(instance) => {
-    ///         let number_of_occurrences = instance.get_usage_count("password");
-    ///         println!("The password 'password' was used {} times", number_of_occurrences);
-    ///     },
-    ///     Err(error) => println!("Could not get an instance, the error was: {}", error)
-    /// }
-    /// ```
-    pub fn get_usage_count(&self, password: &str) -> u64 {
-        match self.known_password_hashes {
-            Some(ref hash_map) => {
-                // get the SHA-1 hashed password
-                let mut hasher = Sha1::new();
-                hasher.input_str(password);
-                let password_hash = hasher.result_str();
-
-                // return the number of occurrences in the hash map
-                match hash_map.get(password_hash.as_str()) {
-                    Some(number) => *number,
-                    None => 0,
-                }
-            }
-            None => 0,
-        }
     }
 
     /// Get the size of the original password file.

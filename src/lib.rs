@@ -1,3 +1,5 @@
+use crypto::digest::Digest;
+use crypto::sha1::Sha1;
 use std::fmt::Result as FmtResult;
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
@@ -58,6 +60,20 @@ impl PasswordHashEntry {
 
     pub fn get_line_to_write(&self) -> String {
         format!("{}:{}\n", self.hash, self.occurrences)
+    }
+
+    pub fn from_password(password: &String) -> PasswordHashEntry {
+        // hash the input password
+        let mut hasher = Sha1::new();
+        hasher.input_str(password.as_str());
+        let hashed_password = hasher.result_str();
+
+        // return the created object
+        PasswordHashEntry {
+            hash: hashed_password.clone(),
+            occurrences: 0,
+            entry_size: 2 + hashed_password.len() as u64,
+        }
     }
 }
 
