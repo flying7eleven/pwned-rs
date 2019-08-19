@@ -5,18 +5,48 @@ A simple tool to process the password hash files provided by [haveibeenpwned.com
 this tool to learn more about rust and to fulfill by own needs. Maybe it's also useful for someone else. Feel free to play
 around with it or submit PRs.
 
+## How to build the tool
+This is one of the simples things to do. If you have [Rust]() installed, just type
+
+```shell script
+cargo build --release
+```
+
+in a terminal window. After a short period of time the tool is build and can be used. Please be sure that you've
+provided the ```--release``` flag since otherwise the optimization process can take up to 10-times as long.
+
+If you are running the tool on Linux, I recommend placing the binary in your path. An option - even though it's not
+the recommended way - would be typing
+
+```shell script
+sudo cp target/release/pwned-rs /usr/bin
+```
+
 ## How to use
-The tool does have different modes in which it can run. First, you have to start to optimize the password hash
-file. This will group the password hashes by a prefix in seperate files in which it can lookup hashes quite quick. This
-optimization process is started by typing
+
+### Prerequisites
+As said above, the program just helps you searching offline in the password databases provided by
+[haveibeenpwned.com](https://haveibeenpwned.com). Before you start, please visit
+[https://haveibeenpwned.com/Passwords](https://haveibeenpwned.com/Passwords) and download the database in the **SHA-1**
+format **ordered by hash**. This is quite important since the program is currently not designed to read the other
+files correctly.
+
+### Actual program usage
+The tool does have different modes in which it can run. First, you have to start to "optimize" the password hash
+file. This will group the password hashes by a prefix in separate files in which it can lookup hashes quite quick. This
+"optimization" process is started by typing
 
 ```shell script
 pwned-rs optimize /path/to/the/password/hash/file.txt /output/folder
 ```
 
-This can be a lengthy process which takes at least an hour. After this optimization process, the search for a password in
-this database is quickly done by typing
+It will run about 2 hours on a recently quick CPU and HDD/SSD combination. This process has to be done just a single time
+and the single-file password hash file can be deleted afterwards.
+
+After this optimization process, the search for a password in this database is quickly done by typing
 
 ```shell script
 pwned-rs lookup /path/to/optimized/database
 ```
+
+and follow the instructions given by the program itsemf.
