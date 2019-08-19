@@ -4,6 +4,12 @@ use log::{error, LevelFilter};
 use pwned_rs::subcommands::lookup::run_subcommand as run_subcommand_lookup;
 use pwned_rs::subcommands::optimize::run_subcommand as run_subcommand_optimize;
 
+#[cfg(debug_assertions)]
+const LOGGING_LEVEL: LevelFilter = LevelFilter::Trace;
+
+#[cfg(not(debug_assertions))]
+const LOGGING_LEVEL: LevelFilter = LevelFilter::Info;
+
 fn initialize_logging() {
     // configure the logging framework and set the corresponding log level
     let logging_framework = fern::Dispatch::new()
@@ -16,7 +22,7 @@ fn initialize_logging() {
                 message
             ))
         })
-        .level(LevelFilter::Debug)
+        .level(LOGGING_LEVEL)
         .chain(std::io::stdout())
         .apply();
 
