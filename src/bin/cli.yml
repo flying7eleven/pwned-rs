@@ -18,3 +18,5 @@ subcommands:
         - output-folder:
             index: 2
             help: The folder in with the optimized files should be stored.
+  - entropy:
+      about: Try to estimate the entropy of a password you enter.
