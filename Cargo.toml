@@ -16,6 +16,7 @@ fern = "*"
 indicatif = "*"
 lazy_static = "*"
 log = "*"
+regex = "*"
 rpassword = "*"
 rust-crypto = "*"
 # secstr = {version = "*", features = ["libsodium-sys"]}
