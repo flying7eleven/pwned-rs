@@ -1,8 +1,9 @@
 use crate::PasswordHashEntry;
-use log::error;
+use log::{debug, error};
+use std::collections::HashMap;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::fs::{File, OpenOptions};
-use std::io::{BufRead, BufReader, Error};
+use std::io::{BufRead, BufReader, Error, Read};
 use std::path::Path;
 
 /// The possible errors which can occur on instantiation of the [HaveIBeenPwnedParser](struct.HaveIBeenPwnedParser.html) class.
@@ -176,11 +177,97 @@ impl Iterator for DatabaseIterator {
     }
 }
 
-pub struct DatabaseReader;
+pub struct DatabaseReader {
+    password_hashes: HashMap<String, u64>,
+}
 
 impl DatabaseReader {
-    pub fn from_file(_path_to_file: &Path) -> Result<DatabaseReader, CreateInstanceError> {
-        Err(CreateInstanceError::Format(FormatErrorKind::NotATextFile))
+    pub fn from_file(path_to_file: &Path) -> Result<DatabaseReader, CreateInstanceError> {
+        // be sure that the file exists, if not we should return a proper error which the caller can deal with
+        let _ = match std::fs::metadata(path_to_file) {
+            Ok(data) => data,
+            Err(error) => return Err(CreateInstanceError::Io(error)),
+        };
+
+        // try to figure our how many entries are stored in the file
+        let mut file_reader = match OpenOptions::new()
+            .append(false)
+            .create(false)
+            .read(true)
+            .open(&path_to_file)
+        {
+            Ok(file_handle) => BufReader::new(file_handle),
+            Err(error) => return Err(CreateInstanceError::Io(error)),
+        };
+
+        // read the whole file at once
+        let mut password_hash_file_content = Vec::new();
+        match file_reader.read_to_end(&mut password_hash_file_content) {
+            Ok(size) => debug!("Read {} bytes from the password hash file", size),
+            Err(error) => return Err(CreateInstanceError::Io(error)),
+        };
+
+        //
+        let password_hashes = match String::from_utf8(password_hash_file_content) {
+            Ok(converted) => converted,
+            Err(_) => return Err(CreateInstanceError::Format(FormatErrorKind::NotATextFile)),
+        };
+
+        //
+        let mut passwords = HashMap::new();
+
+        // loop through all single password lines
+        for current_hash in password_hashes.split('\n') {
+            // skip all empty lines to prevent that they are indicating corrupted files
+            if current_hash.is_empty() {
+                continue;
+            }
+
+            //
+            let mut splitted_line = current_hash.split(':');
+
+            //
+            let key = match splitted_line.next() {
+                Some(value) => value.to_string(),
+                None => {
+                    return Err(CreateInstanceError::Format(
+                        FormatErrorKind::LineFormatNotCorrect,
+                    ))
+                }
+            };
+
+            //
+            let value = match splitted_line.next() {
+                Some(value) => match value.parse::<u64>() {
+                    Ok(value) => value,
+                    Err(_) => {
+                        return Err(CreateInstanceError::Format(
+                            FormatErrorKind::LineFormatNotCorrect,
+                        ))
+                    }
+                },
+                None => {
+                    return Err(CreateInstanceError::Format(
+                        FormatErrorKind::LineFormatNotCorrect,
+                    ))
+                }
+            };
+
+            //
+            passwords.insert(key, value);
+        }
+
+        //
+        Ok(DatabaseReader {
+            password_hashes: passwords,
+        })
+    }
+
+    pub fn get_password_count(&self, password: String) -> Option<u64> {
+        match self.password_hashes.get(password.as_str()) {
+            Some(value) => Some(*value),
+            None => None,
+        }
     }
 }
 
