@@ -1,6 +1,6 @@
 [package]
 name = "pwned-rs"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Tim Hütz <tim@huetz.biz>"]
 edition = "2018"
 description = "Tool for locally checking existing of passwords in the leak files provided by Troy Hunt."
