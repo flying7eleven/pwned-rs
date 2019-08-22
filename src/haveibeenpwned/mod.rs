@@ -88,7 +88,7 @@ impl DatabaseIterator {
             .read(true)
             .open(&path_to_file)
         {
-            Ok(file_handle) => BufReader::new(file_handle),
+            Ok(file_handle) => BufReader::with_capacity(1024 * 1024 * 128, file_handle),
             Err(error) => return Err(CreateInstanceError::Io(error)),
         };
 
