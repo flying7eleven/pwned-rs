@@ -40,7 +40,7 @@ file. This will group the password hashes by a prefix in separate files in which
 pwned-rs optimize /path/to/the/password/hash/file.txt /output/folder
 ```
 
-It will run about 2 hours on a recently quick CPU and HDD/SSD combination. This process has to be done just a single time
+It will run about 20 minutes on a recently quick CPU and HDD/SSD combination. This process has to be done just a single time
 and the single-file password hash file can be deleted afterwards.
 
 After this optimization process, the search for a password in this database is quickly done by typing
