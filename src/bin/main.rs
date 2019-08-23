@@ -3,6 +3,7 @@ use clap::{crate_authors, crate_description, crate_name, crate_version, load_yam
 use log::{error, LevelFilter};
 use pwned_rs::subcommands::lookup::run_subcommand as run_subcommand_lookup;
 use pwned_rs::subcommands::optimize::run_subcommand as run_subcommand_optimize;
+use pwned_rs::subcommands::quicklookup::run_subcommand as run_subcommand_quicklookup;
 
 #[cfg(debug_assertions)]
 const LOGGING_LEVEL: LevelFilter = LevelFilter::Trace;
@@ -49,6 +50,8 @@ fn main() {
         run_subcommand_optimize(matches);
     } else if let Some(matches) = matches.subcommand_matches("lookup") {
         run_subcommand_lookup(matches);
+    } else if let Some(matches) = matches.subcommand_matches("quick-lookup") {
+        run_subcommand_quicklookup(matches);
     } else {
         error!("No known subcommand was selected. Please refer to the help for information about how to use this application.");
     }
