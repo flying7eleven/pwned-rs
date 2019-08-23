@@ -146,7 +146,7 @@ impl Iterator for DatabaseIterator {
 
         //
         let password_hash = match entry_splitted.next() {
-            Some(key_text) => key_text.to_lowercase(),
+            Some(key_text) => key_text.to_string(),
             None => {
                 error!("Could not get the password hash part of the entry!");
                 return None;

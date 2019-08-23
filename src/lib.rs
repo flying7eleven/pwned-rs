@@ -119,7 +119,7 @@ impl FromStr for PasswordHashEntry {
 
         // get the hash for the current entry
         let hash = match entry_splitted.next() {
-            Some(key_text) => key_text.to_lowercase(),
+            Some(key_text) => key_text.to_string(),
             None => return Err(HashLineFormatError::NoOccurrenceCountFound),
         };
 
