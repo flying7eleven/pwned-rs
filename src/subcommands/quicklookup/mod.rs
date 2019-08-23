@@ -2,10 +2,10 @@ use crate::PasswordHashEntry;
 use clap::ArgMatches;
 use log::{error, info};
 use rpassword::read_password_from_tty;
-use std::fs::{File, OpenOptions, metadata};
+use std::fs::{metadata, File, OpenOptions};
+use std::io::{BufRead, BufReader, Seek, SeekFrom};
 use std::path::Path;
 use std::process::exit;
-use std::io::{SeekFrom, Seek, BufReader, BufRead};
 use std::str::FromStr;
 
 struct DivideAndConquerLookup {
@@ -20,7 +20,10 @@ impl DivideAndConquerLookup {
         let file_size = match metadata(password_file) {
             Ok(metadata) => metadata.len(),
             Err(error) => {
-                error!("Could not determine the size of the file. The error was: {}", error.to_string());
+                error!(
+                    "Could not determine the size of the file. The error was: {}",
+                    error.to_string()
+                );
                 return None;
             }
         };
@@ -40,7 +43,12 @@ impl DivideAndConquerLookup {
                 return None;
             }
         };
-        Some(DivideAndConquerLookup { file_handle, file_size, top: 0, end: 0 })
+        Some(DivideAndConquerLookup {
+            file_handle,
+            file_size,
+            top: 0,
+            end: 0,
+        })
     }
 
     pub fn get_password_count(&mut self, seeked_password_hash: &PasswordHashEntry) -> Option<u64> {
@@ -48,28 +56,29 @@ impl DivideAndConquerLookup {
             self.top = 0;
             self.end = self.file_size;
         }
-        let mid = ( self.end - self.top ) / 2 + self.top;
+        let mid = (self.end - self.top) / 2 + self.top;
 
         if self.file_handle.seek(SeekFrom::Start(mid)).is_err() {
             error!("Could not seek to byte: {}", mid);
             return None;
         }
-        
+
         let mut line_read_buffer = String::new();
-        
-        // First read seeks to next new line 
+
+        // First read seeks to next new line
         let _ = self.file_handle.read_line(&mut line_read_buffer);
         line_read_buffer.clear();
-        
+
         let _ = self.file_handle.read_line(&mut line_read_buffer);
 
-        let password_hash_at_current_line = match PasswordHashEntry::from_str(line_read_buffer.replace("\r\n", "").as_str()) {
-            Ok(entry) => entry,
-            Err(error) => {
-                error!("{}", error.to_string());
-                return None;
-            }
-        };
+        let password_hash_at_current_line =
+            match PasswordHashEntry::from_str(line_read_buffer.replace("\r\n", "").as_str()) {
+                Ok(entry) => entry,
+                Err(error) => {
+                    error!("{}", error.to_string());
+                    return None;
+                }
+            };
 
         if password_hash_at_current_line == *seeked_password_hash {
             return Some(password_hash_at_current_line.occurrences);
@@ -110,14 +119,14 @@ pub fn run_subcommand(matches: &ArgMatches) {
         };
 
     // get the lookup instance
-    let mut divide_and_conquer_lookup = match DivideAndConquerLookup::from_file(password_hash_file_path)
-    {
-        Some(lookup) => lookup,
-        None => {
-            error!("Could not get instace of the divide and conquer lookup algorithm.");
-            exit(-2);
-        }
-    };
+    let mut divide_and_conquer_lookup =
+        match DivideAndConquerLookup::from_file(password_hash_file_path) {
+            Some(lookup) => lookup,
+            None => {
+                error!("Could not get instace of the divide and conquer lookup algorithm.");
+                exit(-2);
+            }
+        };
 
     // try to lookup the password
     match divide_and_conquer_lookup.get_password_count(&read_password) {
