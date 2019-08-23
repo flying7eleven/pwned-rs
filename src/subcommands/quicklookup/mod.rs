@@ -11,8 +11,8 @@ use std::str::FromStr;
 struct DivideAndConquerLookup {
     file_handle: BufReader<File>,
     file_size: u64,
-    top: u64,
-    end: u64,
+    head_position: u64,
+    tail_position: u64,
 }
 
 impl DivideAndConquerLookup {
@@ -46,17 +46,17 @@ impl DivideAndConquerLookup {
         Some(DivideAndConquerLookup {
             file_handle,
             file_size,
-            top: 0,
-            end: 0,
+            head_position: 0,
+            tail_position: 0,
         })
     }
 
     pub fn get_password_count(&mut self, seeked_password_hash: &PasswordHashEntry) -> Option<u64> {
-        if self.end == 0 {
-            self.top = 0;
-            self.end = self.file_size;
+        if self.tail_position == 0 {
+            self.head_position = 0;
+            self.tail_position = self.file_size;
         }
-        let mid = (self.end - self.top) / 2 + self.top;
+        let mid = (self.tail_position - self.head_position) / 2 + self.head_position;
 
         if self.file_handle.seek(SeekFrom::Start(mid)).is_err() {
             error!("Could not seek to byte: {}", mid);
@@ -65,35 +65,50 @@ impl DivideAndConquerLookup {
 
         let mut line_read_buffer = String::new();
 
-        // First read seeks to next new line
-        let _ = self.file_handle.read_line(&mut line_read_buffer);
+        // first read seeks to next new line
+        if self.file_handle.read_line(&mut line_read_buffer).is_err() {
+            error!("Could not seek to the next line of the file");
+            return None;
+        }
         line_read_buffer.clear();
 
-        let _ = self.file_handle.read_line(&mut line_read_buffer);
+        // second read does the actual read of the current data set
+        if self.file_handle.read_line(&mut line_read_buffer).is_err() {
+            error!("Could not read a full line for parsing a password entry");
+            return None;
+        }
 
+        // try to parse the current line and extract the password hash
         let password_hash_at_current_line =
             match PasswordHashEntry::from_str(line_read_buffer.replace("\r\n", "").as_str()) {
                 Ok(entry) => entry,
                 Err(error) => {
-                    error!("{}", error.to_string());
+                    error!(
+                        "Could not extract the password hash from the read line. The error was: {}",
+                        error.to_string()
+                    );
                     return None;
                 }
             };
 
+        // if the last read hash is the searched one, we are done here
         if password_hash_at_current_line == *seeked_password_hash {
             return Some(password_hash_at_current_line.occurrences);
         }
 
+        // determine in which block we should continue our search
         if password_hash_at_current_line < *seeked_password_hash {
-            self.top = mid;
+            self.head_position = mid;
         } else {
-            self.end = mid;
+            self.tail_position = mid;
         }
 
         // 40 Bytes sha1 + 1 Byte seperator + 1 Byte single digit occurrence
-        if self.end - self.top < 42 {
+        if self.tail_position - self.head_position < 42 {
             return None;
         }
+
+        // continue with the divide and conquer method
         self.get_password_count(seeked_password_hash)
     }
 }
