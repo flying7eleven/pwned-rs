@@ -1,5 +1,6 @@
 use crypto::digest::Digest;
 use crypto::sha1::Sha1;
+use std::cmp::Ordering;
 use std::fmt::Result as FmtResult;
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
@@ -82,6 +83,18 @@ impl PasswordHashEntry {
             occurrences: 0,
             entry_size: 2 + hashed_password.len() as u64,
         }
+    }
+}
+
+impl PartialEq for PasswordHashEntry {
+    fn eq(&self, other: &Self) -> bool {
+        self.hash.eq(&other.hash)
+    }
+}
+
+impl PartialOrd for PasswordHashEntry {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        self.hash.partial_cmp(&other.hash)
     }
 }
 
@@ -249,5 +262,26 @@ mod tests {
             "fdc625010c4beb998e590924df39b7e59298612d",
             exact_prefix.unwrap()
         );
+    }
+
+    #[test]
+    fn ensure_hash_comparison_works_as_intended() {
+        let hash_one = PasswordHashEntry {
+            hash: "000000".to_string(),
+            entry_size: 0,
+            occurrences: 0,
+        };
+        let hash_two = PasswordHashEntry {
+            hash: "00000F".to_string(),
+            entry_size: 0,
+            occurrences: 0,
+        };
+
+        assert_eq!(true, hash_one < hash_two);
+        assert_eq!(true, hash_one <= hash_two);
+        assert_eq!(true, hash_one != hash_two);
+        assert_eq!(false, hash_one == hash_two);
+        assert_eq!(false, hash_one > hash_two);
+        assert_eq!(false, hash_one >= hash_two);
     }
 }
