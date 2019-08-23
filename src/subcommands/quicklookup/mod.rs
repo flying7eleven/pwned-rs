@@ -146,7 +146,7 @@ pub fn run_subcommand(matches: &ArgMatches) {
     // try to lookup the password
     match divide_and_conquer_lookup.get_password_count(&read_password) {
         Some(count) => info!(
-            "The password was found {} in password breaches. Please change the password!",
+            "The password was found {} times in password breaches. Please change the password!",
             count
         ),
         None => {

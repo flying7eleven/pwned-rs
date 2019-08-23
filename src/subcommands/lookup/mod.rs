@@ -47,7 +47,7 @@ pub fn run_subcommand(matches: &ArgMatches) {
     //
     match read_database.get_password_count(password_entry.get_hash()) {
         Some(count) => info!(
-            "The password was found {} in password breaches. Please change the password!",
+            "The password was found {} times in password breaches. Please change the password!",
             count
         ),
         None => {
