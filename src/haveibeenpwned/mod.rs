@@ -264,7 +264,7 @@ impl DatabaseReader {
     }
 
     pub fn get_password_count(&self, password: String) -> Option<u64> {
-        match self.password_hashes.get(password.as_str()) {
+        match self.password_hashes.get(password.to_uppercase().as_str()) {
             Some(value) => Some(*value),
             None => None,
         }
@@ -282,5 +282,26 @@ mod tests {
         assert_eq!(true, maybe_instance.is_err());
         let error = maybe_instance.err().unwrap();
         assert_eq!(true, error.to_string().contains("IO error:"));
+    }
+
+    #[test]
+    fn ensure_get_password_count_is_case_insensitive() {
+        let mut fake_reader = DatabaseReader {
+            password_hashes: HashMap::new(),
+        };
+        fake_reader.password_hashes.insert(
+            "0000000A1D4B746FAA3FD526FF6D5BC8052FDB38".to_string(),
+            1 as u64,
+        );
+
+        let lower_case_input =
+            fake_reader.get_password_count("0000000a1d4b746faa3fd526ff6d5bc8052fdb38".to_string());
+        assert_eq!(true, lower_case_input.is_some());
+        assert_eq!(1, lower_case_input.unwrap());
+
+        let upper_case_input =
+            fake_reader.get_password_count("0000000A1D4B746FAA3FD526FF6D5BC8052FDB38".to_string());
+        assert_eq!(true, upper_case_input.is_some());
+        assert_eq!(1, upper_case_input.unwrap());
     }
 }
