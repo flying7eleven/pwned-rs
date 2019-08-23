@@ -50,6 +50,14 @@ impl PasswordHashEntry {
         cloned_hash[..3].to_string()
     }
 
+    pub fn get_dynamic_prefix(&self, length: usize) -> Option<String> {
+        if length > self.hash.len() {
+            return None;
+        }
+        let cloned_hash = self.hash.clone();
+        Some(cloned_hash[..length].to_string())
+    }
+
     pub fn get_occurrences(&self) -> u64 {
         self.occurrences
     }
@@ -206,6 +214,40 @@ mod tests {
         assert_eq!(
             HashLineFormatError::MultipleHashLines,
             maybe_instance.err().unwrap()
+        );
+    }
+
+    #[test]
+    fn creating_a_password_hash_entry_from_a_plaintext_password_works() {
+        let instance = PasswordHashEntry::from_password("sample_password");
+        assert_eq!(0, instance.get_occurrences());
+        assert_eq!(42, instance.get_size_in_bytes());
+        assert_eq!(
+            "fdc625010c4beb998e590924df39b7e59298612d",
+            instance.get_hash()
+        );
+        assert_eq!("fdc", instance.get_prefix());
+        assert_eq!("fdc", instance.get_dynamic_prefix(3).unwrap());
+        assert_eq!("fdc62", instance.get_dynamic_prefix(5).unwrap());
+    }
+
+    #[test]
+    fn getting_a_too_long_dynamic_prefix_is_handled_correctly() {
+        let instance = PasswordHashEntry::from_password("sample_password");
+
+        let too_long_prefix = instance.get_dynamic_prefix(50);
+        assert_eq!(true, too_long_prefix.is_none());
+    }
+
+    #[test]
+    fn getting_a_dynamic_prefix_with_the_exact_hash_length_works() {
+        let instance = PasswordHashEntry::from_password("sample_password");
+
+        let exact_prefix = instance.get_dynamic_prefix(40);
+        assert_eq!(true, exact_prefix.is_some());
+        assert_eq!(
+            "fdc625010c4beb998e590924df39b7e59298612d",
+            exact_prefix.unwrap()
         );
     }
 }
