@@ -11,7 +11,7 @@ pub fn run_subcommand(matches: &ArgMatches) {
     let password_hash_folder = match matches.value_of("optimized-db-folder") {
         Some(path) => path,
         None => {
-            error!("It seems that the path to the folder for the optimized password hashe files was not provided, please see the help for usage instructions.");
+            error!("It seems that the path to the folder for the optimized password hash files was not provided, please see the help for usage instructions.");
             exit(-1);
         }
     };
