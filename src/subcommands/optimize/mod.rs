@@ -64,6 +64,7 @@ pub fn run_subcommand(matches: &ArgMatches) {
     progress_bar.set_style(ProgressStyle::default_bar()
         .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {bytes}/{total_bytes} ({eta_precise})")
         .progress_chars("#>-"));
+    progress_bar.set_draw_delta(1024 * 1024 * 8);
 
     // start processing (and optimizing) the information stored in the password hash file
     let mut processed_bytes = 0;
@@ -121,7 +122,7 @@ pub fn run_subcommand(matches: &ArgMatches) {
             file_size,
         );
         processed_bytes = new;
-        progress_bar.set_position(new);
+        progress_bar.set_position(processed_bytes);
     }
     progress_bar.finish_with_message("optimized");
 
