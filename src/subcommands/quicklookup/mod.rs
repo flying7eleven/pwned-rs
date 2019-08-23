@@ -1,6 +1,6 @@
 use crate::PasswordHashEntry;
 use clap::ArgMatches;
-use log::{error, info, debug};
+use log::{error, info};
 use rpassword::read_password_from_tty;
 use std::fs::{File, OpenOptions, metadata};
 use std::path::Path;
@@ -43,24 +43,27 @@ impl DivideAndConquerLookup {
         Some(DivideAndConquerLookup { file_handle, file_size, top: 0, end: 0 })
     }
 
-    pub fn get_password_count(&mut self, password_hash: &PasswordHashEntry) -> Option<u64> {
+    pub fn get_password_count(&mut self, seeked_password_hash: &PasswordHashEntry) -> Option<u64> {
         if self.end == 0 {
             self.top = 0;
             self.end = self.file_size;
         }
         let mid = ( self.end - self.top ) / 2 + self.top;
-        debug!("top = {}, mid = {}, end = {}", self.top, mid, self.end);
 
         if self.file_handle.seek(SeekFrom::Start(mid)).is_err() {
-            error!("Foo!");
+            error!("Could not seek to byte: {}", mid);
             return None;
         }
-        let mut foo = String::new();
-        self.file_handle.read_line(&mut foo);
-        foo.clear();
-        self.file_handle.read_line(&mut foo);
+        
+        let mut line_read_buffer = String::new();
+        
+        // First read seeks to next new line 
+        let _ = self.file_handle.read_line(&mut line_read_buffer);
+        line_read_buffer.clear();
+        
+        let _ = self.file_handle.read_line(&mut line_read_buffer);
 
-        let foo2 = match PasswordHashEntry::from_str(foo.replace("\r", "").replace("\n", "").as_str()) {
+        let password_hash_at_current_line = match PasswordHashEntry::from_str(line_read_buffer.replace("\r\n", "").as_str()) {
             Ok(entry) => entry,
             Err(error) => {
                 error!("{}", error.to_string());
@@ -68,19 +71,21 @@ impl DivideAndConquerLookup {
             }
         };
 
-        if foo2 > *password_hash {
-            error!("{} > {}", foo2.get_prefix(), password_hash.get_prefix());
-            // weiter unten
-            self.top = self.file_handle.seek(SeekFrom::Current(0)).unwrap();
-            self.end = self.file_size;
-        } else {
-            error!("{} < {}", foo2.get_prefix(), password_hash.get_prefix());
-            // weiter oben
-            self.top = 0;
-            self.end = self.file_handle.seek(SeekFrom::Current(0)).unwrap();
+        if password_hash_at_current_line == *seeked_password_hash {
+            return Some(password_hash_at_current_line.occurrences);
         }
 
-        self.get_password_count(password_hash)
+        if password_hash_at_current_line < *seeked_password_hash {
+            self.top = mid;
+        } else {
+            self.end = mid;
+        }
+
+        // 40 Bytes sha1 + 1 Byte seperator + 1 Byte single digit occurrence
+        if self.end - self.top < 42 {
+            return None;
+        }
+        self.get_password_count(seeked_password_hash)
     }
 }
 
