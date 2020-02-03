@@ -1,5 +1,6 @@
 # pwned-rs
 ![Build](https://github.com/flying7eleven/pwned-rs/workflows/Build/badge.svg)
+![Security audit](https://github.com/flying7eleven/pwned-rs/workflows/Security%20audit/badge.svg)
 
 A simple tool to process the password hash files provided by [haveibeenpwned.com](https://haveibeenpwned.com). I've written
 this tool to learn more about rust and to fulfill by own needs. Maybe it's also useful for someone else. Feel free to play
