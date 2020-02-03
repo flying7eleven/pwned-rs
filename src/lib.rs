@@ -1,5 +1,4 @@
-use crypto::digest::Digest;
-use crypto::sha1::Sha1;
+use sha1::Sha1;
 use std::cmp::Ordering;
 use std::fmt::Result as FmtResult;
 use std::fmt::{Display, Formatter};
@@ -74,8 +73,8 @@ impl PasswordHashEntry {
     pub fn from_password(password: &str) -> PasswordHashEntry {
         // hash the input password
         let mut hasher = Sha1::new();
-        hasher.input_str(password);
-        let hashed_password = hasher.result_str();
+        hasher.update(password.as_bytes());
+        let hashed_password = hasher.digest().to_string();
 
         // return the created object
         PasswordHashEntry {
