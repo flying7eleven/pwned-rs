@@ -1,5 +1,5 @@
 # pwned-rs
-[![Build Status](https://travis-ci.org/thuetz/pwned-rs.svg?branch=master)](https://travis-ci.org/thuetz/pwned-rs)
+![Build](https://github.com/flying7eleven/pwned-rs/workflows/Build/badge.svg)
 
 A simple tool to process the password hash files provided by [haveibeenpwned.com](https://haveibeenpwned.com). I've written
 this tool to learn more about rust and to fulfill by own needs. Maybe it's also useful for someone else. Feel free to play
