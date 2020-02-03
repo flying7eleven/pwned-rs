@@ -3,6 +3,12 @@ version: <filled automatically>
 author: <filled automatically>
 about: <filled automatically>
 subcommands:
+  - quick-lookup:
+      about: Search for passwords in the original password file through an devide-and-conquer like algorithm.
+      args:
+        - password-database:
+            index: 1
+            help: The path to the file with all passwords ordered by the hash of the password.
   - lookup:
       about: Search for passwords in the optimized password hash database.
       args:

@@ -1,5 +1,5 @@
 # pwned-rs
-[![Build Status](https://travis-ci.org/thuetz/pwned-rs.svg?branch=master)](https://travis-ci.org/thuetz/pwned-rs)
+![Build](https://github.com/flying7eleven/pwned-rs/workflows/Build/badge.svg)
 
 A simple tool to process the password hash files provided by [haveibeenpwned.com](https://haveibeenpwned.com). I've written
 this tool to learn more about rust and to fulfill by own needs. Maybe it's also useful for someone else. Feel free to play
@@ -31,7 +31,16 @@ As said above, the program just helps you searching offline in the password data
 format **ordered by hash**. This is quite important since the program is currently not designed to read the other
 files correctly.
 
-### Actual program usage
+### Using the divide-and-conquer lookup
+Afer downloading and extracting the password database, you can simply run
+
+```shell script
+pwned-rs quick-lookup /path/to/the/password/hash/file.txt
+```
+
+to search for password hashes inside the database.
+
+### Using an "optimized" database (deprecated)
 The tool does have different modes in which it can run. First, you have to start to "optimize" the password hash
 file. This will group the password hashes by a prefix in separate files in which it can lookup hashes quite quick. This
 "optimization" process is started by typing
