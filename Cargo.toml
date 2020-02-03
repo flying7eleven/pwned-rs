@@ -16,5 +16,4 @@ fern = "0.5"
 indicatif = "0.14"
 log = "0.4"
 rpassword = "4.0"
-rust-crypto = "0.2"
 # secstr = {version = "*", features = ["libsodium-sys"]}
