@@ -10,11 +10,11 @@ name = "pwned-rs"
 path = "src/bin/main.rs"
 
 [dependencies]
-chrono = "*"
-clap = {version = "*", features = ["yaml"]}
-fern = "*"
-indicatif = "*"
-log = "*"
-rpassword = "*"
-rust-crypto = "*"
+chrono = "0.4"
+clap = {version = "2.33", features = ["yaml"]}
+fern = "0.5"
+indicatif = "0.14"
+log = "0.4"
+rpassword = "4.0"
+rust-crypto = "0.2"
 # secstr = {version = "*", features = ["libsodium-sys"]}
