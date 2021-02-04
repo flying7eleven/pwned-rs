@@ -9,12 +9,28 @@ description = "Tool for locally checking existing of passwords in the leak files
 name = "pwned-rs"
 path = "src/bin/main.rs"
 
-[dependencies]
-chrono = "0.4"
-clap = {version = "2.33", features = ["yaml"]}
-fern = "0.5"
-indicatif = "0.14"
-log = "0.4"
-rpassword = "4.0"
-rust-crypto = "0.2"
-# secstr = {version = "*", features = ["libsodium-sys"]}
+[dependencies.chrono]
+version = "0.4"
+
+[dependencies.clap]
+version = "2.33"
+features = ["yaml"]
+
+[dependencies.fern]
+version = "0.6"
+
+[dependencies.log]
+version = "0.4"
+
+[dependencies.indicatif]
+version = "0.15"
+
+[dependencies.rpassword]
+version = "5.0"
+
+[dependencies.rust-crypto]
+version = "0.2"
+
+#[dependencies.secstr]
+#version = "0.4"
+#features = ["libsodium-sys"]
