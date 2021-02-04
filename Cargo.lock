@@ -189,7 +189,7 @@ checksum = "17b02fc0ff9a9e4b35b3342880f48e896ebf69f2967921fe8646bf5b7125956a"
 
 [[package]]
 name = "pwned-rs"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "chrono",
  "clap",
